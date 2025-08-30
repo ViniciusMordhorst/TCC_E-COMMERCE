@@ -3,48 +3,44 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
-    // =========================
-    // Formulário de Cadastro
-    // =========================
-    public function showCadastroForm()
+    // Verifica se o usuário está logado
+    public function checkAuth()
     {
-        return view('auth.cadastro');
+        if (!Session::has('usuario')) {
+            return redirect()->route('login')->with('error', 'Você precisa estar logado para acessar esta página.');
+        }
+        return true;
     }
 
-    // =========================
-    // Cadastro de Usuário Cliente
-    // =========================
-    public function cadastro(Request $request)
+    // Retorna usuário autenticado
+    public function me()
     {
-        $request->validate([
-            'nome' => 'required|string|max:255',
-            'email' => 'required|email|unique:usuarios,email',
-            'senha' => 'required|string|min:6|confirmed',
-            'cpf' => 'nullable|string|max:20',
-            'telefone' => 'nullable|string|max:20',
-        ]);
-
-        $userId = DB::table('usuarios')->insertGetId([
-            'nome' => $request->nome,
-            'email' => $request->email,
-            'senha' => Hash::make($request->password), // hash da senha
-            'tipo' => 0, // sempre cliente
-            'cpf' => $request->cpf ?? null,
-            'telefone' => $request->telefone ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        
-        return view('auth.cadastro', [
-            'success' => 'Usuário cadastrado com sucesso!',
-            'userId' => $userId
-        ]);
+        if (!Session::has('usuario')) {
+            return response()->json(['error' => 'Não autenticado.'], 401);
+        }
+        return response()->json(Session::get('usuario'));
     }
- 
+
+    // Logout
+    public function logout()
+    {
+        Session::forget('usuario');
+        return redirect()->route('login')->with('success', 'Logout realizado com sucesso!');
+    }
+
+    // Futuro: recuperação de senha
+    public function forgotPassword()
+    {
+        // Enviar e-mail de recuperação
+    }
+
+    // Futuro: redefinição de senha
+    public function resetPassword()
+    {
+        // Implementar redefinição
+    }
 }

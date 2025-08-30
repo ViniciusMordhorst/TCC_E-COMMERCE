@@ -15,17 +15,22 @@
                 </div>
                 <div class="card-body">
                     @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                <div class="alert alert-danger" style="text-align: center;">
+                    <ul>
+                        @foreach ($errors->all() as $erro)
+                    <li>{{ $erro }}</li>
+                        @endforeach
+                    </ul>
+                    </div>
+                        @endif
 
-                
-                    <form action="{{ route('cadastro') }}" method="POST">
+                        @if(session('success'))
+                    <div class="alert alert-success" style="text-align: center;">
+                    {{ session('success') }}
+                    </div>
+                        @endif
+
+                    <form action="{{ route('cadastro.form') }}" method="POST">
                         @csrf
                         <div class="mb-3">
                             <label for="nome" class="form-label">Nome</label>

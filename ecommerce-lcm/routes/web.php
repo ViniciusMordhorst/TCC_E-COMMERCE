@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CadastroController;
+use App\Http\Controllers\LoginController;
 
 // Página inicial
 Route::get('/', function () {
@@ -12,18 +13,18 @@ Route::get('/', function () {
 // Rotas de Autenticação
 // =========================
 
-// Cadastro
-Route::get('/cadastro', [AuthController::class, 'showCadastroForm'])->name('cadastro.form');
-Route::post('/cadastro', [AuthController::class, 'cadastro'])->name('cadastro');
 
+
+// Cadastro
+Route::get('/cadastro', [CadastroController::class, 'showForm'])->name('cadastro.form');
+Route::post('/cadastro', [CadastroController::class, 'store'])->name('cadastro.store');
 
 // Login
-Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
-Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::get('/login', [LoginController::class, 'showForm'])->name('login.form');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Logout
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
+// Dashboard (exemplo protegido por auth)
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware('auth')->name('dashboard');
