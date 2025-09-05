@@ -25,6 +25,12 @@ class Usuario extends Authenticatable
         'senha',
     ];
 
+    // Ajuste para autenticação com Laravel
+    public function getAuthPassword()
+    {
+        return $this->senha;
+    }
+
     public function isAdmin()
     {
         return $this->tipo === 1;

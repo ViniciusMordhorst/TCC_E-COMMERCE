@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CadastroController;
 use App\Http\Controllers\LoginController;
+use App\Models\Produto;
+
 
 // Página inicial
 Route::get('/', function () {
@@ -24,8 +26,14 @@ Route::get('/login', [LoginController::class, 'showForm'])->name('login.form');
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// Dashboard (exemplo protegido por auth)
+// Página inicial (Home)
+Route::get('/', function () {
+    $produtos = Produto::all(); // Mesmo que esteja vazio, não dará erro
+    return view('home', compact('produtos'));
+})->name('home');
+
+
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware('auth')->name('dashboard');
+})->middleware(['auth', 'admin'])->name('dashboard');
 

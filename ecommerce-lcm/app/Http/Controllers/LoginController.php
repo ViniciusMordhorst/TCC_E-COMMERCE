@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
+use App\Models\Usuario;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
@@ -15,7 +15,7 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function authenticate(Request $request)
+    public function login(Request $request)
     {
         // Validação
         $request->validate([
@@ -24,28 +24,37 @@ class LoginController extends Controller
         ], [
             'email.required' => 'O campo e-mail é obrigatório.',
             'email.email' => 'Digite um e-mail válido.',
-
             'senha.required' => 'O campo senha é obrigatório.',
             'senha.min' => 'A senha deve ter no mínimo 6 caracteres.',
         ]);
 
         // Buscar usuário
-        $usuario = DB::table('usuarios')->where('email', $request->email)->first();
+        $usuario = Usuario::where('email', $request->email)->first();
 
+        // Verificar email e senha
         if (!$usuario || !Hash::check($request->senha, $usuario->senha)) {
             throw ValidationException::withMessages([
-                'email' => 'E-mail ou senha inválidos.'
+                'email' => ['E-mail ou senha incorretos.']
             ]);
         }
 
-        // Criar sessão
-        Session::put('usuario', [
-            'id' => $usuario->id,
-            'nome' => $usuario->nome,
-            'email' => $usuario->email,
-            'tipo' => $usuario->tipo,
-        ]);
+        // Autenticar manualmente
+        Auth::login($usuario);
 
-        return redirect()->route('dashboard')->with('success', 'Login realizado com sucesso!');
+        // Redirecionar baseado no tipo
+        if ($usuario->tipo == 1) { // admin
+            return redirect()->route('dashboard')
+                             ->with('success', 'Bem-vindo administrador!');
+        }
+
+        return redirect()->route('home')
+                         ->with('success', 'Login realizado com sucesso!');
+    }
+
+    public function logout()
+    {
+        Auth::logout();
+        return redirect()->route('login.form')
+                         ->with('success', 'Logout realizado com sucesso!');
     }
 }
