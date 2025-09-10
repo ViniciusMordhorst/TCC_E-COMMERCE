@@ -23,9 +23,10 @@ class LoginController extends Controller
             'senha' => 'required|string|min:6',
         ], [
             'email.required' => 'O campo e-mail é obrigatório.',
-            'email.email' => 'Digite um e-mail válido.',
-            'senha.required' => 'O campo senha é obrigatório.',
-            'senha.min' => 'A senha deve ter no mínimo 6 caracteres.',
+            'email.required' => 'E-mail ou senha incorretos.',
+            'email.email' => 'E-mail ou senha incorretos.',
+            'senha.required' => 'E-mail ou senha incorretos.',
+            'senha.incorreto' => 'A senha deve ter no mínimo 6 caracteres.',
         ]);
 
         // Buscar usuário
@@ -34,11 +35,12 @@ class LoginController extends Controller
         // Verificar email e senha
         if (!$usuario || !Hash::check($request->senha, $usuario->senha)) {
             throw ValidationException::withMessages([
-                'email' => ['E-mail ou senha incorretos.']
+                'email' => ['E-mail ou senha incorretos.'],
+                'senha' => ['E-mail ou senha incorretos.']
             ]);
         }
 
-        // Autenticar manualmente
+      // Autenticar com o guard padrão
         Auth::login($usuario);
 
         // Redirecionar baseado no tipo
@@ -51,10 +53,28 @@ class LoginController extends Controller
                          ->with('success', 'Login realizado com sucesso!');
     }
 
+// Logout
     public function logout()
     {
         Auth::logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
         return redirect()->route('login.form')
                          ->with('success', 'Logout realizado com sucesso!');
     }
+
+     // Painel do admin (dashboard) — só exibe se for admin
+    public function painel()
+    {
+        $user = Auth::user();
+        if (!$user || $user->tipo != 1) {
+            // Acesso negado para não-admins
+             return redirect()->route('home')
+                         ->with('error1', 'Acesso negado. Você não é um administrador.');
+        }
+
+        // Retornar view do dashboard (crie resources/views/dashboard.blade.php)
+        return view('dashboard', compact('user'));
+    }
+
 }

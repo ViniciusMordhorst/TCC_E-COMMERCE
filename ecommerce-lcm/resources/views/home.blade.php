@@ -16,6 +16,14 @@
         </div>
     @endif
 
+    
+ {{-- Mensagem de erro (vinda do redirect ->with('error1', ...)) --}}
+    @if(session('error1'))
+        <div class="alert alert-danger">
+            {{ session('error1') }}
+        </div>
+    @endif
+
     <h2>Bem-vindo <strong>{{ Auth::user()->nome }}</strong>!</h2>
 
     {{-- Botão de Logout --}}
@@ -37,13 +45,15 @@
     @endif
 </div>
 
-{{-- Script para remover a mensagem após 10 segundos --}}
+
 <script>
+    // Esconde a mensagem de sessão ativa após 3s
     setTimeout(() => {
-        const msg = document.getElementById('sessaoAtiva');
-        if(msg) {
-            msg.style.display = 'none';
-        }
-    }, 10000); // 10000ms = 10 segundos
+        const sess = document.getElementById('sessaoAtiva');
+        if (sess) sess.style.display = 'none';
+    }, 3000);
+
+  
+  
 </script>
 @endsection
