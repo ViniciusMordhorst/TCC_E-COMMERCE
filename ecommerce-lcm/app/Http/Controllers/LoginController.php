@@ -73,6 +73,7 @@ class LoginController extends Controller
                          ->with('error1', 'Acesso negado. Você não é um administrador.');
         }
 
+
         // Retornar view do dashboard (crie resources/views/dashboard.blade.php)
         return view('dashboard', compact('user'));
     }

@@ -40,7 +40,18 @@ Route::get('/home', function () {
     return view('home', compact('produtos'));
 })->name('home');
 
-// Dashboard: rota protegida por auth; somente admin (verificação no controller)
-Route::get('/dashboard', [LoginController::class, 'painel'])
-    ->middleware('auth')
-    ->name('dashboard');
+Route::get('/dashboard', function () {
+    if (!Auth::check()) {
+        return redirect()->route('login.form')
+            ->with('error', 'Você precisa estar logado para acessar essa página.');
+    }
+
+    $user = Auth::user();
+    if ((int)$user->tipo !== 1) {
+        return redirect()->route('home')
+            ->with('error', 'Acesso negado. Você não é um administrador.');
+    }
+
+
+    return app()->call([LoginController::class, 'painel']);
+})->name('dashboard');
