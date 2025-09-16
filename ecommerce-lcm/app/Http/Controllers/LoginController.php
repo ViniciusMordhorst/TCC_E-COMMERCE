@@ -36,7 +36,7 @@ class LoginController extends Controller
         if (!$usuario || !Hash::check($request->senha, $usuario->senha)) {
             throw ValidationException::withMessages([
                 'email' => ['E-mail ou senha incorretos.'],
-                'senha' => ['E-mail ou senha incorretos.']
+              
             ]);
         }
 
@@ -62,19 +62,21 @@ class LoginController extends Controller
         return redirect()->route('login.form')
                          ->with('success', 'Logout realizado com sucesso!');
     }
-
-     // Painel do admin (dashboard) — só exibe se for admin
+// Painel do admin (dashboard) — verificação manual sem middleware
     public function painel()
     {
-        $user = Auth::user();
-        if (!$user || $user->tipo != 1) {
-            // Acesso negado para não-admins
-             return redirect()->route('home')
-                         ->with('error1', 'Acesso negado. Você não é um administrador.');
+        // se não autenticado, direciona ao login
+        if (!Auth::check()) {
+            return redirect()->route('login.form')->with('error', 'Você precisa estar logado para acessar.');
         }
 
+        $user = Auth::user();
 
-        // Retornar view do dashboard (crie resources/views/dashboard.blade.php)
+        // se autenticado mas não for admin
+        if ((int) $user->tipo !== 1) {
+            return redirect()->route('home')->with('error', 'Acesso negado. Você não é um administrador.');
+        }
+
         return view('dashboard', compact('user'));
     }
 
