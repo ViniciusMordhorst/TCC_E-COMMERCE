@@ -26,9 +26,9 @@
                     @endif
 
                     {{-- Mensagens de sessão --}}
-                    @if(session('success'))
+                    @if(session('success.login'))
                         <div class="alert alert-success text-center">
-                            {{ session('success') }}
+                            {{ session('success.login') }}
                         </div>
                     @endif
 

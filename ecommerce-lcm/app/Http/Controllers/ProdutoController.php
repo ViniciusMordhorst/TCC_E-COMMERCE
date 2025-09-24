@@ -12,11 +12,42 @@ use Illuminate\Support\Facades\DB;
 
 class ProdutoController extends Controller
 {
+    protected $authController;
+
+    public function __construct()
+    {
+        $this->authController = new AuthController();
+    }
+
     // ========================
-    // Listar produtos
+    // Home - lista produtos para usuários comuns
     // ========================
+    public function home()
+    {
+        $this->authController->checkAuth();
+        $produtos = Produto::all();
+        return view('home', compact('produtos'));
+    }
+
+    // ========================
+    // CRUD produtos - apenas admin
+    // ========================
+
+    private function checkAdmin()
+    {
+        $this->authController->checkAuth();
+        $user = \Auth::user();
+        if ((int)$user->tipo !== 1) {
+            redirect()->route('home')
+                ->with('error', 'Acesso negado. Você não é um administrador.')
+                ->send();
+            exit;
+        }
+    }
+
     public function index()
     {
+        $this->checkAdmin();
         $produtos = Produto::with('categoria')->orderBy('nome')->get();
         return view('produtos.index', compact('produtos'));
     }
@@ -73,14 +104,14 @@ class ProdutoController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('produtos.index')->with('success', 'Produto cadastrado com sucesso!');
+            return redirect()->route('produtos.index')->with('success_produto', 'Produto cadastrado com sucesso!');
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Erro ao cadastrar produto', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return redirect()->back()->withInput()->with('error', 'Erro ao cadastrar produto. Veja os logs.');
+            return redirect()->back()->withInput()->with('error_produto', 'Erro ao cadastrar produto. Veja os logs.');
         }
     }
 
@@ -148,14 +179,14 @@ class ProdutoController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->route('produtos.index')->with('success', 'Produto atualizado com sucesso!');
+            return redirect()->route('produtos.index')->with('success_produto', 'Produto atualizado com sucesso!');
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Erro ao atualizar produto', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return redirect()->back()->withInput()->with('error', 'Erro ao atualizar produto. Veja os logs.');
+            return redirect()->back()->withInput()->with('error_produto', 'Erro ao atualizar produto. Veja os logs.');
         }
     }
 
@@ -169,7 +200,7 @@ class ProdutoController extends Controller
             $this->deleteFromSupabase($produto->imagem);
         }
         $produto->delete();
-        return redirect()->route('produtos.index')->with('success', 'Produto removido com sucesso!');
+        return redirect()->route('produtos.index')->with('success_produto', 'Produto removido com sucesso!');
     }
 
     // ========================
@@ -225,4 +256,4 @@ class ProdutoController extends Controller
         ])->delete("{$supabaseUrl}/storage/v1/object/{$supabaseBucket}/{$path}");
     }
 }
-            return redirect()->route('produtos.index')->with('success', 'Produto cadastrado com sucesso!');
+            return redirect()->route('produtos.index')->with('success_produto', 'Produto cadastrado com sucesso!');

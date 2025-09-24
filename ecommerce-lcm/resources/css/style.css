@@ -1,0 +1,47 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f7f7;
+}
+
+/* Hero */
+.hero {
+    background: linear-gradient(135deg, #067a40 0%, #14532d 100%);
+    padding: 5rem 1rem;
+}
+
+
+.hero h1 {
+    font-size: 3rem;
+}
+
+.hero p {
+    font-size: 1.25rem;
+}
+
+/* Features */
+.feature-icon {
+    font-size: 2rem;
+}
+
+/* Cards */
+.card-title {
+    font-weight: 600;
+}
+
+.card-text {
+    font-size: 1.1rem;
+}
+
+/* CTA */
+.cta {
+    background: linear-gradient(135deg, #14532d 0%, #1e3a2c 100%);
+    padding: 4rem 1rem;
+}
+
+.cta h2 {
+    font-size: 2.5rem;
+}
+
+.cta p {
+    font-size: 1.2rem;
+}

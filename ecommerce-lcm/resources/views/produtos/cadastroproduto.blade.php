@@ -20,8 +20,8 @@
 
         <div class="card-body">
             {{-- Mensagens --}}
-            @if(session('success'))
-                <div id="flashSuccess" class="alert alert-success">{{ session('success') }}</div>
+            @if(session('success_produto'))
+                <div id="flashSuccess" class="alert alert-success">{{ session('success_produto') }}</div>
             @endif
 
             @if($errors->any())

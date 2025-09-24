@@ -62,12 +62,13 @@ class LoginController extends Controller
         return redirect()->route('login.form')
                          ->with('success', 'Logout realizado com sucesso!');
     }
-// Painel do admin (dashboard) — verificação manual sem middleware
+//Painel do admin (dashboard) — verificação manual sem middleware
     public function painel()
     {
         // se não autenticado, direciona ao login
         if (!Auth::check()) {
             return redirect()->route('login.form')->with('error', 'Você precisa estar logado para acessar.');
+           
         }
 
         $user = Auth::user();
@@ -79,5 +80,7 @@ class LoginController extends Controller
 
         return view('dashboard', compact('user'));
     }
+
+  
 
 }
