@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastrar Produto</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .image-preview { max-width: 240px; max-height: 240px; object-fit: contain; border: 1px solid #e9e9e9; padding: 6px; border-radius: 6px; }
-        .form-card { max-width: 900px; margin: 24px auto; }
-    </style>
-</head>
-<body class="bg-light">
-<div class="container form-card">
+{{-- resources/views/produtos/index.blade.php --}}
+@extends('layouts.app')
+
+@section('title', 'Cadastrar Produto')
+
+@section('content')
+<div class="form-card">
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Cadastrar Produto</h5>
@@ -19,11 +12,7 @@
         </div>
 
         <div class="card-body">
-            {{-- Mensagens --}}
-            @if(session('success_produto'))
-                <div id="flashSuccess" class="alert alert-success">{{ session('success_produto') }}</div>
-            @endif
-
+            {{-- Exibir erros de validação --}}
             @if($errors->any())
                 <div id="flashErrors" class="alert alert-danger">
                     <ul class="mb-0">
@@ -103,9 +92,11 @@
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
 <script>
-    // preview da imagem selecionada
+    // Preview da imagem selecionada
     document.getElementById('inputImagem')?.addEventListener('change', function (e) {
         const file = e.target.files && e.target.files[0];
         const preview = document.getElementById('previewImagem');
@@ -122,13 +113,10 @@
         reader.readAsDataURL(file);
     });
 
-    // esconde flashes após 3s
+    // Esconde flashes de erro após 3s
     setTimeout(() => {
-        const s = document.getElementById('flashSuccess');
-        if (s) s.style.display = 'none';
         const e = document.getElementById('flashErrors');
         if (e) e.style.display = 'none';
     }, 3000);
 </script>
-</body>
-</html>
+@endpush

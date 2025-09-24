@@ -12,7 +12,7 @@
     @if($produtos->isEmpty())
         <p>Nenhum produto cadastrado.</p>
     @else
-        <table class="table table-bordered">
+        <table class="table table-bordered align-middle">
             <thead>
                 <tr>
                     <th>Imagem</th>
@@ -25,7 +25,13 @@
             <tbody>
                 @foreach($produtos as $produto)
                     <tr>
-                        <td><img src="{{ asset('storage/' . $produto->imagem) }}" width="100" alt="{{ $produto->nome }}"></td>
+                        <td>
+                            <a href="{{ route('produtos.show', $produto->id) }}">
+                                <img src="{{ $produto->imagem ?? asset('images/placeholder.png') }}" 
+                                     alt="{{ $produto->nome }}" 
+                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
+                            </a>
+                        </td>
                         <td>{{ $produto->nome }}</td>
                         <td>R$ {{ number_format($produto->preco, 2, ',', '.') }}</td>
                         <td>{{ $produto->descricao }}</td>

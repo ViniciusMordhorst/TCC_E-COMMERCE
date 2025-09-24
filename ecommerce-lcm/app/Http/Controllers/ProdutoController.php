@@ -17,7 +17,10 @@ class ProdutoController extends Controller
     public function __construct()
     {
         $this->authController = new AuthController();
+        
     }
+
+    
 
     // ========================
     // Home - lista produtos para usuários comuns
@@ -56,7 +59,7 @@ class ProdutoController extends Controller
     // Formulário de cadastro
     // ========================
     public function create()
-    {
+    {   $this->checkAdmin();
         $categorias = Categoria::orderBy('nome')->get();
         return view('produtos.cadastroproduto', compact('categorias')); // corrigido
     }
@@ -65,7 +68,7 @@ class ProdutoController extends Controller
     // Salvar produto
     // ========================
     public function store(Request $request)
-    {
+    {   $this->checkAdmin();
         $request->validate([
             'nome' => 'required|string|max:255',
             'descricao' => 'nullable|string',
@@ -119,7 +122,7 @@ class ProdutoController extends Controller
     // Exibir produto
     // ========================
     public function show($id)
-    {
+    {   
         $produto = Produto::with('categoria')->findOrFail($id);
         return view('produtos.produto', compact('produto')); // corrigido
     }
@@ -128,7 +131,7 @@ class ProdutoController extends Controller
     // Formulário de edição
     // ========================
     public function edit($id)
-    {
+    {   $this->checkAdmin();
         $produto = Produto::findOrFail($id);
         $categorias = Categoria::orderBy('nome')->get();
         return view('produtos.edit', compact('produto', 'categorias'));
@@ -138,7 +141,7 @@ class ProdutoController extends Controller
     // Atualizar produto
     // ========================
     public function update(Request $request, $id)
-    {
+    {   $this->checkAdmin();
         $request->validate([
             'nome' => 'required|string|max:255',
             'descricao' => 'nullable|string',
@@ -194,7 +197,7 @@ class ProdutoController extends Controller
     // Deletar produto
     // ========================
     public function destroy($id)
-    {
+    {   $this->checkAdmin();
         $produto = Produto::findOrFail($id);
         if ($produto->imagem) {
             $this->deleteFromSupabase($produto->imagem);
@@ -207,7 +210,7 @@ class ProdutoController extends Controller
     // Upload para Supabase
     // ========================
     private function uploadToSupabase($file)
-    {
+    {   $this->checkAdmin();
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $supabaseBucket = env('SUPABASE_BUCKET', 'produtos');
@@ -241,7 +244,7 @@ class ProdutoController extends Controller
     // Deletar imagem do Supabase
     // ========================
     private function deleteFromSupabase($url)
-    {
+    {   $this->checkAdmin();
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $supabaseBucket = env('SUPABASE_BUCKET', 'produtos');

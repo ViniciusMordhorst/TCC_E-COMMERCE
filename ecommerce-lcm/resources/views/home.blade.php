@@ -21,16 +21,16 @@
         </div>
     @endif
 
-    <h2>Bem-vindo <strong>{{ Auth::user()->nome }}</strong>!</h2>
 
-    {{-- Botão de Logout --}}
-    <form action="{{ route('logout') }}" method="POST" class="mb-4">
-        @csrf
-        <button type="submit" class="btn btn-danger">Sair</button>
-    </form>
+{{-- Mensagem de boas-vindas temporária --}}
+<div id="bemVindo" class="alert alert-info text-center">
+    Bem-vindo <strong>{{ Auth::user()->nome }}</strong>!
+</div>
 
-    {{-- Hero Section --}}
- <section class="hero text-center text-white py-5 mb-5">
+
+
+    {{-- Aside Section --}}
+ <section class="aside text-center py-5 mb-5">
         <div class="container">
             <h1 class="display-4 fw-bold mb-3">Couro Artesanal</h1>
             <p class="lead mb-4">Descubra nossa coleção cuidadosamente selecionada de produtos artesanais em couro de alta qualidade.</p>
@@ -112,11 +112,6 @@
     </section>
 </div>
 
-<script>
-    // Esconde a mensagem de sessão ativa após 3s
-    setTimeout(() => {
-        const sess = document.getElementById('sessaoAtiva');
-        if (sess) sess.style.display = 'none';
-    }, 3000);
-</script>
+
+
 @endsection
