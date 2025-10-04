@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Cadastrar Produto')
+@section('title', 'Editar Produto')
 
 @section('content')
 <div class="form-card">
     <div class="card shadow-sm">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Cadastrar Produto</h5>
+            <h5 class="mb-0">Editar Produto</h5>
             <a href="{{ route('produtos.index') }}" class="btn btn-sm btn-secondary">Voltar</a>
         </div>
 
@@ -21,7 +21,7 @@
                 </div>
             @endif
 
-            @include('produtos._form')
+            @include('produtos._form', ['produto' => $produto])
         </div>
     </div>
 </div>

@@ -55,13 +55,22 @@ class ProdutoController extends Controller
         return view('produtos.index', compact('produtos'));
     }
 
+    // Para exibir todos os produtos no catálogo
+    public function catalogo()
+    {
+        $produtos = Produto::with('categoria')->orderBy('nome')->get();
+            return view('produtos.catalogo', compact('produtos'));
+    }
+
+
+
     // ========================
     // Formulário de cadastro
     // ========================
     public function create()
     {   $this->checkAdmin();
-        $categorias = Categoria::orderBy('nome')->get();
-        return view('produtos.cadastroproduto', compact('categorias')); // corrigido
+            $categorias = Categoria::orderBy('nome')->get();
+                return view('produtos.cadastroproduto', compact('categorias')); // corrigido
     }
 
     // ========================
@@ -137,6 +146,7 @@ class ProdutoController extends Controller
         return view('produtos.edit', compact('produto', 'categorias'));
     }
 
+    
     // ========================
     // Atualizar produto
     // ========================
@@ -192,6 +202,7 @@ class ProdutoController extends Controller
             return redirect()->back()->withInput()->with('error_produto', 'Erro ao atualizar produto. Veja os logs.');
         }
     }
+
 
     // ========================
     // Deletar produto
