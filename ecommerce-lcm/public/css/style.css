@@ -1,0 +1,63 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f7f7;
+}
+
+.navbar-brand img {
+    height: 60px; /* ajusta altura */
+    width: auto;  /* mantém proporção */
+}
+.navbar-brand{
+    height: 60px; /* ajusta altura */
+    width: auto;  /* mantém proporção */
+}
+
+.navbar{
+    background: linear-gradient(135deg, #212523 0%, #217a4e 50%, #14532d 100%);
+}
+
+.aside {
+    background: linear-gradient(135deg, #0f9d58 0%, #067a40 50%, #14532d 100%);
+    padding: 5rem 1rem;
+    border-radius: 0.5rem; /* opcional: cantos arredondados */
+}
+
+
+.aside h1 {
+    font-size: 3rem;
+    color: #fff; /* deixa título branco */
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3); /* melhora contraste */
+}
+
+.aside p {
+    font-size: 1.25rem;
+    color: #e6ffe6; /* verde bem claro para dar contraste */
+}
+
+/* Features */
+.feature-icon {
+    font-size: 2rem;
+}
+
+/* Cards */
+.card-title {
+    font-weight: 600;
+}
+
+.card-text {
+    font-size: 1.1rem;
+}
+
+/* CTA */
+.cta {
+    background: linear-gradient(135deg, #14532d 0%, #1e3a2c 100%);
+    padding: 4rem 1rem;
+}
+
+.cta h2 {
+    font-size: 2.5rem;
+}
+
+.cta p {
+    font-size: 1.2rem;
+}

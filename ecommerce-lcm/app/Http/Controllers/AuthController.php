@@ -3,104 +3,64 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
-use Supabase\SupabaseClient;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use App\Models\Produto;
 
 class AuthController extends Controller
 {
-    protected $supabase;
-
-    public function __construct()
+    // Verifica se o usuário está logado
+    public function checkAuth()
     {
-        $this->supabase = new SupabaseClient(
-            env('SUPABASE_URL'),
-            env('SUPABASE_KEY')
-        );
-    }
-
-    // =========================
-    // Registro
-    // =========================
-    public function register(Request $request)
-    {
-        $request->validate([
-            'nome' => 'required|string|max:255',
-            'email' => 'required|email|unique:usuarios,email',
-            'senha' => 'required|string|min:6',
-            'tipo' => 'required|string|max:50',
-        ]);
-
-        // Criar usuário no Supabase Auth
-        $signup = $this->supabase->auth->signUp([
-            'email' => $request->email,
-            'password' => $request->senha
-        ]);
-
-        if (isset($signup['error'])) {
-            return response()->json(['error' => $signup['error']['message']], 400);
+        if (!Auth::check() && !Session::has('usuario')) {
+            redirect()->route('login.form')
+                     ->with('error', 'Você precisa estar logado para acessar esta página.')
+                     ->send(); // envia o redirect imediatamente
+            exit; // interrompe a execução do método que chamou checkAuth
         }
-
-        // Criar registro no banco Laravel
-        $userId = DB::table('usuarios')->insertGetId([
-            'nome' => $request->nome,
-            'email' => $request->email,
-            'senha' => Hash::make($request->senha), // bcrypt
-            'tipo' => $request->tipo,
-            'cpf' => $request->cpf ?? null,
-            'telefone' => $request->telefone ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return response()->json([
-            'message' => 'Usuário registrado com sucesso!',
-            'user_id' => $userId
-        ], 201);
+        return true;
     }
 
-    // =========================
-    // Login
-    // =========================
-    public function login(Request $request)
+    // Retorna usuário autenticado
+    public function retornaUsuario()
     {
-        $request->validate([
-            'email' => 'required|email',
-            'senha' => 'required|string',
-        ]);
-
-        // Autenticar via Supabase
-        $login = $this->supabase->auth->signIn([
-            'email' => $request->email,
-            'password' => $request->senha
-        ]);
-
-        if (isset($login['error'])) {
-            return response()->json(['error' => $login['error']['message']], 401);
+        if (Auth::check()) {
+            return response()->json(Auth::user());
         }
-
-        return response()->json([
-            'message' => 'Login realizado com sucesso!',
-            'user' => $login['data']['user'] ?? null,
-            'session' => $login['data']['session'] ?? null
-        ], 200);
+        if (!Session::has('usuario')) {
+            return response()->json(['error' => 'Não autenticado.'], 401);
+        }
+        return response()->json(Session::get('usuario'));
     }
 
-    // =========================
+    // Home (usuários comuns)
+    public function home()
+    {
+        $this->checkAuth(); // garante que o usuário esteja logado
+
+        $produtos = Produto::all();
+        return view('home', compact('produtos'));
+    }
+
     // Logout
-    // =========================
     public function logout(Request $request)
     {
-        $token = $request->bearerToken();
-
-        if (!$token) {
-            return response()->json(['error' => 'Token não fornecido'], 401);
+        if (Auth::check()) {
+            Auth::logout();
+        } else {
+            Session::forget('usuario');
         }
 
-        $signOut = $this->supabase->auth->signOut($token);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-        return response()->json([
-            'message' => 'Logout realizado com sucesso!'
-        ], 200);
+        return redirect()->route('login.form')
+                         ->with('success', 'Logout realizado com sucesso!');
     }
+
+    // Futuro: recuperação de senha
+    public function esqueceuSenha() {}
+
+    // Futuro: redefinição de senha
+    public function alterarSenha() {}
 }
