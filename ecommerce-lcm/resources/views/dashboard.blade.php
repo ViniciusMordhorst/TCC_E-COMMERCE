@@ -2,6 +2,7 @@
 @extends('layouts.app')
 
 @section('content')
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
 <div class="container mt-4">
     <div class="row">
         <!-- Sidebar -->
