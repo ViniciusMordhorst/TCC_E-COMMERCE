@@ -53,8 +53,8 @@ public function show($id)
 
     public function updateStatus(Request $request, $id)
 {
-    $user = Auth::user();
-    if ($user->tipo !== 1) {
+    $this->authController->checkAuth();
+    if ($this->authController->user->tipo !== 1) {
         redirect()->route('home')->with('error', 'Acesso negado')->send();
         exit;
     }
