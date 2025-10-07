@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Catálogo de Produtos')
-
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
 @section('content')
 <div class="container mt-5">
     <h2 class="mb-4">Catálogo de Produtos</h2>

@@ -17,10 +17,7 @@ class ProdutoController extends Controller
     public function __construct()
     {
         $this->authController = new AuthController();
-        
     }
-
-    
 
     // ========================
     // Home - lista produtos para usuários comuns
@@ -36,23 +33,18 @@ class ProdutoController extends Controller
     // CRUD produtos - apenas admin
     // ========================
 
-    private function checkAdmin()
-    {
-        $this->authController->checkAuth();
-        $user = \Auth::user();
-        if ((int)$user->tipo !== 1) {
-            redirect()->route('home')
-                ->with('error', 'Acesso negado. Você não é um administrador.')
-                ->send();
-            exit;
-        }
-    }
-
     public function index()
     {
-        $this->checkAdmin();
+        $this->authController->checkAdmin();
         $produtos = Produto::with('categoria')->orderBy('nome')->get();
         return view('produtos.index', compact('produtos'));
+    }
+
+    public function create()
+    {
+        $this->authController->checkAdmin();
+        $categorias = Categoria::orderBy('nome')->get();
+        return view('produtos.cadastroproduto', compact('categorias'));
     }
 
     // Para exibir todos os produtos no catálogo
@@ -63,21 +55,10 @@ class ProdutoController extends Controller
     }
 
 
-
-    // ========================
-    // Formulário de cadastro
-    // ========================
-    public function create()
-    {   $this->checkAdmin();
-            $categorias = Categoria::orderBy('nome')->get();
-                return view('produtos.cadastroproduto', compact('categorias')); // corrigido
-    }
-
-    // ========================
-    // Salvar produto
-    // ========================
     public function store(Request $request)
-    {   $this->checkAdmin();
+    {
+        $this->authController->checkAdmin();
+
         $request->validate([
             'nome' => 'required|string|max:255',
             'descricao' => 'nullable|string',
@@ -127,31 +108,18 @@ class ProdutoController extends Controller
         }
     }
 
-    // ========================
-    // Exibir produto
-    // ========================
-    public function show($id)
-    {   
-        $produto = Produto::with('categoria')->findOrFail($id);
-        return view('produtos.produto', compact('produto')); // corrigido
-    }
-
-    // ========================
-    // Formulário de edição
-    // ========================
     public function edit($id)
-    {   $this->checkAdmin();
+    {
+        $this->authController->checkAdmin();
         $produto = Produto::findOrFail($id);
         $categorias = Categoria::orderBy('nome')->get();
         return view('produtos.edit', compact('produto', 'categorias'));
     }
 
-    
-    // ========================
-    // Atualizar produto
-    // ========================
     public function update(Request $request, $id)
-    {   $this->checkAdmin();
+    {
+        $this->authController->checkAdmin();
+
         $request->validate([
             'nome' => 'required|string|max:255',
             'descricao' => 'nullable|string',
@@ -203,33 +171,28 @@ class ProdutoController extends Controller
         }
     }
 
-
-    // ========================
-    // Deletar produto
-    // ========================
     public function destroy($id)
-    {   $this->checkAdmin();
+    {
+        $this->authController->checkAdmin();
         $produto = Produto::findOrFail($id);
+
         if ($produto->imagem) {
             $this->deleteFromSupabase($produto->imagem);
         }
+
         $produto->delete();
         return redirect()->route('produtos.index')->with('success_produto', 'Produto removido com sucesso!');
     }
 
     // ========================
-    // Upload para Supabase
+    // Upload e delete Supabase
     // ========================
     private function uploadToSupabase($file)
-    {   $this->checkAdmin();
+    {
+        $this->authController->checkAdmin();
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $supabaseBucket = env('SUPABASE_BUCKET', 'produtos');
-
-        if (empty($supabaseUrl) || empty($supabaseKey)) {
-            Log::error('Configuração Supabase inválida');
-            throw new \RuntimeException('Configuração Supabase inválida.');
-        }
 
         $filename = Str::random(40) . '.' . $file->getClientOriginalExtension();
         $content = file_get_contents($file->getRealPath());
@@ -251,16 +214,12 @@ class ProdutoController extends Controller
         return "{$supabaseUrl}/storage/v1/object/public/{$supabaseBucket}/{$filename}";
     }
 
-    // ========================
-    // Deletar imagem do Supabase
-    // ========================
     private function deleteFromSupabase($url)
-    {   $this->checkAdmin();
+    {
+        $this->authController->checkAdmin();
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_KEY');
         $supabaseBucket = env('SUPABASE_BUCKET', 'produtos');
-
-        if (empty($supabaseUrl) || empty($supabaseKey)) return;
 
         $path = ltrim(str_replace("/storage/v1/object/public/{$supabaseBucket}/", '', parse_url($url, PHP_URL_PATH)), '/');
 
@@ -270,4 +229,3 @@ class ProdutoController extends Controller
         ])->delete("{$supabaseUrl}/storage/v1/object/{$supabaseBucket}/{$path}");
     }
 }
-            return redirect()->route('produtos.index')->with('success_produto', 'Produto cadastrado com sucesso!');

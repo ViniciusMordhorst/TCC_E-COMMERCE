@@ -2,7 +2,7 @@
 @extends('layouts.app')
 
 @section('title', 'Gerenciar Produtos')
-
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
 @section('content')
 <div class="container mt-5">
     <h2>Gerenciar Produtos</h2>

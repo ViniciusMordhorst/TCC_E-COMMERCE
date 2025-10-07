@@ -1,15 +1,23 @@
-<!-- resources/views/carrinho/checkout.blade.php -->
 @extends('layouts.app')
 
 @section('content')
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
+
 <h1>Checkout</h1>
 
 <h2>Resumo do Carrinho</h2>
-<ul>
-@foreach($carrinho as $id => $item)
-    <li>{{ $item['nome'] }} - {{ $item['quantidade'] }}x - R$ {{ $item['preco'] }}</li>
-@endforeach
-</ul>
+@if($itens->count() > 0)
+    <ul>
+        @foreach($itens as $item)
+            <li>
+                {{ $item->produto->nome }} - {{ $item->quantidade }}x - 
+                R$ {{ number_format($item->subtotal, 2, ',', '.') }}
+            </li>
+        @endforeach
+    </ul>
+@else
+    <p>O carrinho está vazio.</p>
+@endif
 
 <h2>Endereço de Entrega</h2>
 <form action="{{ route('carrinho.finalizar') }}" method="POST">
@@ -21,6 +29,6 @@
     <input type="text" name="estado" placeholder="Estado" value="{{ old('estado') }}" required>
     <input type="text" name="cep" placeholder="CEP" value="{{ old('cep') }}" required>
     <input type="text" name="complemento" placeholder="Complemento" value="{{ old('complemento') }}">
-    <button type="submit">Finalizar Pedido</button>
+    <button type="submit" class="btn btn-success mt-3">Finalizar Pedido</button>
 </form>
 @endsection

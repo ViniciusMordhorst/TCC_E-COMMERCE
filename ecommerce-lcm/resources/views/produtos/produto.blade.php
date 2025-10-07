@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', $produto->nome ?? 'Produto')
-
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
 @section('content')
 <div class="container mt-4">
     <div class="card">

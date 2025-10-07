@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Cadastrar Produto')
-
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
 @section('content')
 <div class="form-card">
     <div class="card shadow-sm">
