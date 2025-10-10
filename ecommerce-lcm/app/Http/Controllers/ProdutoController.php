@@ -108,6 +108,15 @@ class ProdutoController extends Controller
         }
     }
 
+    // ========================
+    // Exibir produto
+    // ========================
+    public function show($id)
+    {   
+        $produto = Produto::with('categoria')->findOrFail($id);
+        return view('produtos.produto', compact('produto')); // corrigido
+    }
+
     public function edit($id)
     {
         $this->authController->checkAdmin();

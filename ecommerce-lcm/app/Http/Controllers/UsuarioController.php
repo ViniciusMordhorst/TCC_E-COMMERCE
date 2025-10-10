@@ -10,9 +10,10 @@ class UsuarioController extends Controller
 {
     public function pedidos()
     {
-        $usuario = Auth::user();
+        $authController = new AuthController();
+        $authController->checkAuth();
         $pedidos = Pedido::with('itens.produto', 'endereco')
-                         ->where('id_usuario', $usuario->id)
+                         ->where('id_usuario', Auth::id())  
                          ->orderBy('created_at', 'desc')
                          ->get();
 

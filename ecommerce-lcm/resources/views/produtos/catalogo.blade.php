@@ -26,11 +26,11 @@
                             <p class="card-text text-muted mb-2">
                                 R$ {{ number_format($produto->preco, 2, ',', '.') }}
                             </p>
-
-                            {{-- Botão para adicionar ao carrinho --}}
-                            <a href="{{ route('carrinho.adicionar', $produto->id) }}" 
-                               class="btn btn-primary mt-auto">
-                                Adicionar ao Carrinho
+                                    {{-- Botão carrinho --}}
+                                    <form action="{{ route('carrinho.adicionar', $produto->id) }}" method="POST" class="mt-auto">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary w-100">Adicionar ao Carrinho</button>
+                                    </form>
                             </a>
                         </div>
                     </div>

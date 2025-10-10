@@ -2,24 +2,29 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Pedido extends Model {
-    protected $fillable = ['id_usuario', 'status', 'total'];
+class Pedido extends Model
+{
+    use HasFactory;
 
-    public function itens() {
-        return $this->hasMany(ItemPedido::class, 'id_pedido');
-    }
+    protected $fillable = [
+        'id_usuario', 'id_endereco', 'status', 'total'
+    ];
 
-    public function usuario() {
+    public function usuario()
+    {
         return $this->belongsTo(Usuario::class, 'id_usuario');
     }
 
-    public function endereco() {
-        return $this->belongsTo(Endereco::class, 'id_usuario', 'id_usuario');
+    public function endereco()
+    {
+        return $this->belongsTo(Endereco::class, 'id_endereco');
     }
 
-    public function pagamento() {
-        return $this->hasOne(Pagamento::class, 'id_pedido');
+    public function itens()
+    {
+        return $this->hasMany(ItemPedido::class, 'id_pedido');
     }
 }

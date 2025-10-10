@@ -25,10 +25,24 @@ class Usuario extends Authenticatable
         'senha',
     ];
 
-    // Ajuste para autenticação com Laravel
     public function getAuthPassword()
     {
         return $this->senha;
+    }
+
+    public function endereco()
+    {
+        return $this->hasOne(Endereco::class, 'id_usuario');
+    }
+
+    public function pedidos()
+    {
+        return $this->hasMany(Pedido::class, 'id_usuario');
+    }
+
+    public function carrinho()
+    {
+        return $this->hasOne(Carrinho::class, 'id_usuario');
     }
 
     public function isAdmin()

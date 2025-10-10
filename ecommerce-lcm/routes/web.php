@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\CarrinhoController;
+use App\Http\Controllers\PedidoController;
 
 // Página inicial / Home
 Route::get('/', [ProdutoController::class, 'home'])->name('home');
@@ -32,7 +33,7 @@ Route::resource('produtos', ProdutoController::class)->except(['show']);
 Route::get('produtos/{id}', [ProdutoController::class,'show'])->name('produtos.show');
 
 // Catálogo público
-Route::get('/catalogo', [ProdutoController::class, 'catalogo'])->name('produtos.catalogo');
+Route::get('/catalogo', [ProdutoController::class, 'catalogo'])->name('catalogo');
 
 // Carrinho
 Route::get('/carrinho', [CarrinhoController::class, 'index'])->name('carrinho.index');
@@ -43,14 +44,20 @@ Route::get('/carrinho/checkout', [CarrinhoController::class, 'checkout'])->name(
 Route::post('/carrinho/finalizar', [CarrinhoController::class, 'finalizar'])->name('carrinho.finalizar');
 Route::get('/carrinho/sucesso/{pedidoId}', [CarrinhoController::class, 'sucesso'])->name('carrinho.sucesso');
 
-use App\Http\Controllers\PedidoController;
 
-// Usuário normal
-Route::get('usuario/pedidos', [PedidoController::class, 'index'])->name('usuario.pedidos');
 
-// Detalhes do pedido (usuário ou admin)
-Route::get('pedidos/{id}', [PedidoController::class, 'show'])->name('pedidos.show');
 
-// Atualizar status (apenas admin)
-Route::patch('pedidos/{id}/status', [PedidoController::class, 'updateStatus'])->name('pedidos.updateStatus');
 
+// Admin vê todos os pedidos
+
+// Página de pedidos (admin e usuário comum)
+Route::get('/pedidos', [PedidoController::class, 'index'])->name('pedidos.index');
+
+// Atualizar status do pedido (apenas admin)
+Route::patch('/pedidos/{id}/status', [PedidoController::class, 'updateStatus'])->name('pedidos.updateStatus');
+
+
+
+
+Route::get('/pagamento/{pedidoId}', [PagamentoController::class, 'pagar'])->name('pagamento.pagar');
+Route::get('/pagamento/retorno/{pedidoId}', [PagamentoController::class, 'retorno'])->name('pagamento.retorno');

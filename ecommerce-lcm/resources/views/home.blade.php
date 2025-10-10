@@ -30,7 +30,7 @@
             <p class="lead mb-4">
                 Descubra nossa coleção cuidadosamente selecionada de produtos artesanais em couro de alta qualidade.
             </p>
-            <a href="{{ route('produtos.catalogo') }}" class="btn btn-light btn-lg me-2">Comprar Agora</a>
+            <a href="{{ route('catalogo') }}" class="btn btn-light btn-lg me-2">Comprar Agora</a>
             <a href="#features" class="btn btn-outline-light btn-lg">Saiba Mais</a>
         </div>
     </section>

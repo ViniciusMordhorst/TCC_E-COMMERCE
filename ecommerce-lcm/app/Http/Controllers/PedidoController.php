@@ -4,69 +4,52 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Pedido;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
-
-
 
 class PedidoController extends Controller
 {
-
-    
-    protected $authController;
+    protected $auth;
 
     public function __construct()
     {
-        $this->authController = new AuthController();
+        $this->auth = new AuthController();
     }
+
+
 
 public function index()
 {
-        $this->authController->checkAuth();
+    $this->auth->checkAuth(); // Garante login
+    $user = Auth::user(); // Pega o usuário logado corretamente
 
-    if ($this->authController->user->tipo === 1) { // admin
-        $pedidos = Pedido::with('itens.produto', 'endereco')
-                    ->orderBy('created_at', 'desc')
+    if ($user->isAdmin()) {
+        $pedidos = Pedido::with('itens.produto', 'usuario.endereco')
+                    ->orderByDesc('created_at')
                     ->get();
-        return view('pedidos.index', compact('pedidos')); // admin view
-    } else { // usuário normal
-        $pedidos = Pedido::with('itens.produto', 'endereco')
+    } else {
+        $pedidos = Pedido::with('itens.produto', 'usuario.endereco')
                     ->where('id_usuario', $user->id)
-                    ->orderBy('created_at', 'desc')
+                    ->orderByDesc('created_at')
                     ->get();
-        return view('usuario.pedidos', compact('pedidos')); // user view
-    }
-}
-
-public function show($id)
-{
-    $this->authController->checkAuth();
-    $pedido = Pedido::with('itens.produto', 'endereco')->findOrFail($id);
-
-    // Protege o pedido caso não pertença ao usuário normal
-    if ($user->tipo !== 1 && $pedido->id_usuario !== $user->id) {
-        redirect()->route('home')->with('error', 'Acesso negado')->send();
-        exit;
     }
 
-    return view('pedidos.show', compact('pedido'));
+    return view('pedidos.index', compact('pedidos', 'user'));
 }
+
 
     public function updateStatus(Request $request, $id)
-{
-    $this->authController->checkAuth();
-    if ($this->authController->user->tipo !== 1) {
-        redirect()->route('home')->with('error', 'Acesso negado')->send();
-        exit;
+    {
+        $this->auth->checkAdmin(); // Somente admin
+
+        $request->validate([
+            'status' => 'required|in:Pendente,Processando,Feito,Cancelado'
+        ]);
+
+        $pedido = Pedido::findOrFail($id);
+        $pedido->status = $request->status;
+        $pedido->save();
+
+        return redirect()->back()->with('success', 'Status atualizado!');
     }
-
-    $pedido = Pedido::findOrFail($id);
-    $request->validate([
-        'status' => 'required|in:Pendente,Processando,Feito,Cancelado',
-    ]);
-
-    $pedido->status = $request->status;
-    $pedido->save();
-
-    return redirect()->route('pedidos.index')->with('success', 'Status atualizado com sucesso!');
-}
 }
