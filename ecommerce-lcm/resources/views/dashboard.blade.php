@@ -24,6 +24,7 @@
                     <nav class="nav flex-column">
                         <a class="nav-link py-2" href="{{ route('dashboard') }}">Dashboard</a>
                         <a class="nav-link py-2" href="{{ route('produtos.index') }}">Lista de Produtos</a>
+                        <a class="nav-link py-2" href="{{ route('pedidos.index') }}">Lista de Pedidos</a>
                         <a class="nav-link py-2" href="{{ route('produtos.create') }}">Cadastrar Produto</a>
                     </nav>
 
@@ -62,6 +63,15 @@
                         </div>
                     </div>
                 </div>
+                <p></p>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm p-3 position-relative">
+                            <div class="text-muted small">Pedidos</div>
+                            <div class="h5 mt-2">Ver / Gerenciar</div>
+                            <a href="{{ route('pedidos.index') }}" class="stretched-link"></a>
+                        </div>
+                    </div>
 
                 <div class="mt-4">
                     @yield('dashboard-content')

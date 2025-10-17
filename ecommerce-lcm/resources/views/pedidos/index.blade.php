@@ -16,7 +16,7 @@
                     @php
                         $status = strtolower($pedido->status);
                         $statusClass = match($status) {
-                            'feito' => 'badge bg-primary',
+                            'enviado' => 'badge bg-primary',
                             'processando' => 'badge bg-warning text-dark',
                             'cancelado' => 'badge bg-danger',
                             default => 'badge bg-secondary',
@@ -53,7 +53,7 @@
                         <select name="status" class="form-select me-2" style="width: 200px;">
                             <option value="Pendente" {{ $pedido->status === 'Pendente' ? 'selected' : '' }}>Pendente</option>
                             <option value="Processando" {{ $pedido->status === 'Processando' ? 'selected' : '' }}>Processando</option>
-                            <option value="Feito" {{ $pedido->status === 'Feito' ? 'selected' : '' }}>Feito</option>
+                            <option value="Enviado" {{ $pedido->status === 'Enviado' ? 'selected' : '' }}>Enviado</option>
                             <option value="Cancelado" {{ $pedido->status === 'Cancelado' ? 'selected' : '' }}>Cancelado</option>
                         </select>
                         <button type="submit" class="btn btn-primary">Salvar</button>

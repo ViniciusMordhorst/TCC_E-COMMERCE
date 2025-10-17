@@ -9,6 +9,7 @@ use App\Models\Produto;
 use App\Models\Pedido;
 use App\Models\ItemPedido;
 use App\Models\Endereco;
+use App\Models\Pagamento;
 use Illuminate\Support\Facades\Auth;
 
 class CarrinhoController extends Controller
@@ -75,37 +76,53 @@ class CarrinhoController extends Controller
             return redirect()->back()->with('error', 'Erro ao adicionar produto ao carrinho.');
         }
     }
+public function atualizar(Request $request, $itemId)
+{
+    $this->auth->checkAuth();
+    $userId = auth()->id();
 
-    public function atualizar(Request $request, $itemId)
-    {
-        $this->auth->checkAuth();
+    try {
+        // Busca o carrinho do usuário logado
+        $carrinho = Carrinho::where('id_usuario', $userId)->firstOrFail();
 
-        try {
-            $item = ItemCarrinho::with('produto')->findOrFail($itemId);
-            $quantidade = max(1, (int)$request->quantidade);
+        // Busca o item dentro do carrinho
+        $item = $carrinho->itens()
+            ->with('produto')
+            ->where('id', $itemId)
+            ->firstOrFail();
 
-            if ($quantidade > $item->produto->estoque) {
-                return response()->json([
-                    'error' => "Estoque máximo: {$item->produto->estoque}"
-                ], 400);
-            }
+        // Quantidade mínima 1
+        $quantidade = max(1, (int) $request->quantidade);
 
-            $item->quantidade = $quantidade;
-            $item->subtotal = $quantidade * $item->produto->preco;
-            $item->save();
-
-            $carrinho = Carrinho::where('id_usuario', auth()->id())->first();
-            $total = $carrinho->itens()->sum('subtotal');
-
-            return response()->json([
-                'success' => true,
-                'subtotal' => number_format($item->subtotal, 2, ',', '.'),
-                'total' => number_format($total, 2, ',', '.')
-            ]);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Erro ao atualizar item.'], 500);
+        // Se quantidade for maior que o estoque, avisa
+        $mensagemEstoque = null;
+        if ($quantidade > $item->produto->estoque) {
+            $mensagemEstoque = "Quantidade acima do estoque! Produtos extras serão produzidos.";
         }
+
+        $preco = (float) str_replace(',', '.', $item->produto->preco);
+
+        $item->quantidade = $quantidade;
+        $item->subtotal = $quantidade * $preco;
+        $item->save();
+
+        $total = $carrinho->itens()->sum('subtotal');
+
+        return response()->json([
+            'success' => true,
+            'subtotal' => number_format($item->subtotal, 2, ',', '.'),
+            'total' => number_format($total, 2, ',', '.'),
+            'mensagemEstoque' => $mensagemEstoque
+        ]);
+    } catch (\Exception $e) {
+        \Log::error('Erro ao atualizar item do carrinho: '.$e->getMessage());
+        return response()->json(['error' => 'Erro ao atualizar item.'], 500);
     }
+}
+
+
+
+
 
     public function remover($itemId)
     {
@@ -146,58 +163,39 @@ public function checkout()
 
 
 
-    public function finalizar(Request $request)
-    {
-        $this->auth->checkAuth();
+   public function endereco()
+{
+    $user = auth()->user();
+    $endereco = \App\Models\Endereco::where('id_usuario', $user->id)->first();
 
-        try {
-            $request->validate([
-                'rua' => 'required',
-                'numero' => 'required',
-                'bairro' => 'required',
-                'cidade' => 'required',
-                'estado' => 'required',
-                'cep' => 'required',
-            ]);
+    return view('carrinho.endereco', compact('endereco'));
+}
 
-            $user = auth()->user();
+public function salvarEndereco(Request $request)
+{
+    $user = auth()->user();
 
-            $endereco = Endereco::updateOrCreate(
-                ['id_usuario' => $user->id],
-                $request->only('rua', 'numero', 'bairro', 'cidade', 'estado', 'cep', 'complemento')
-            );
+    $request->validate([
+        'rua' => 'required|string|max:255',
+        'numero' => 'required|string|max:10',
+        'bairro' => 'required|string|max:255',
+        'cidade' => 'required|string|max:255',
+        'estado' => 'required|string|max:2',
+        'cep' => 'required|string|max:9',
+    ]);
 
-            $carrinho = Carrinho::firstOrCreate(['id_usuario' => $user->id]);
+    \App\Models\Endereco::updateOrCreate(
+        ['id_usuario' => $user->id],
+        $request->only(['rua', 'numero', 'bairro', 'cidade', 'estado', 'cep'])
+    );
 
-            if ($carrinho->itens->isEmpty()) {
-                return redirect()->route('carrinho.index')->with('error', 'Não há produtos no carrinho.');
-            }
+    return redirect()->route('pagamento.criar')
+        ->with('success', 'Endereço salvo com sucesso! Redirecionando para o pagamento...');
+}
 
-            $total = $carrinho->itens->sum('subtotal');
 
-            $pedido = Pedido::create([
-                'id_usuario' => $user->id,
-                'status' => 'Feito',
-                'total' => $total,
-                'id_endereco' => $endereco->id,
-            ]);
 
-            foreach ($carrinho->itens as $item) {
-                ItemPedido::create([
-                    'id_pedido' => $pedido->id,
-                    'id_produto' => $item->id_produto,
-                    'quantidade' => $item->quantidade,
-                    'subtotal' => $item->subtotal,
-                ]);
-            }
 
-            $carrinho->itens()->delete();
-
-            return redirect()->route('carrinho.sucesso', $pedido->id);
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Erro ao finalizar o pedido.');
-        }
-    }
 
     public function sucesso($pedidoId)
     {

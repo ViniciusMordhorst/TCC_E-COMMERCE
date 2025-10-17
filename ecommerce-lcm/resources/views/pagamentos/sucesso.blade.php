@@ -4,7 +4,8 @@
 @section('content')
 <link href="{{ asset('css/style.css') }}" rel="stylesheet">
 
-<h1>Pedido Feito!</h1>
+  <h3>✅ Pagamento realizado com sucesso!</h3>
+  <p>Obrigado por comprar conosco.</p>
 
 <h2>Itens do Pedido</h2>
 @if($pedido->itens->count() > 0)

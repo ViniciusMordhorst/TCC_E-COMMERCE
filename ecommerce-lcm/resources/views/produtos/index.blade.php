@@ -30,10 +30,14 @@
                 @foreach($produtos as $produto)
                     <tr>
                         <td>
-                            <img src="{{ $produto->imagem ? asset('storage/' . $produto->imagem) : asset('images/placeholder.png') }}" 
+                            {{-- Imagem clicável leva ao produto --}}
+                        <a href="{{ route('produtos.show', $produto->id) }}">
+                            <img src="{{ $produto->imagem ?? asset('images/placeholder.png') }}" 
                                  alt="{{ $produto->nome }}" 
-                                 style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                                 onclick="window.location='{{ route('produtos.show', $produto->id) }}'">
+                                 class="card-img-top" 
+                                 style="height: 200px; object-fit: cover;">
+                        </a>
+                        
                         </td>
                         <td>{{ $produto->nome }}</td>
                         <td>{{ $produto->ref ?? '-' }}</td>

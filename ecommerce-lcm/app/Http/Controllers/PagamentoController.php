@@ -3,86 +3,134 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Carrinho;
+use App\Models\Pagamento;
 use App\Models\Pedido;
-use Illuminate\Support\Facades\Http; // importante para usar requisições HTTP
 
 class PagamentoController extends Controller
 {
-    public function pagar($pedidoId)
+    public function checkout(Request $request)
     {
-        $pedido = Pedido::findOrFail($pedidoId);
-        $urlRetorno = route('pagamento.retorno', ['pedidoId' => $pedido->id]);
-
-        $data = [
-            'email' => 'EMAIL_DO_PAGSEGURO',
-            'token' => 'TOKEN_DO_PAGSEGURO',
-            'currency' => 'BRL',
-            'itemId1' => $pedido->id,
-            'itemDescription1' => 'Compra no Meu Site',
-            'itemAmount1' => number_format($pedido->total, 2, '.', ''),
-            'itemQuantity1' => 1,
-            'reference' => $pedido->id,
-            'redirectURL' => $urlRetorno,
-        ];
-
-        $query = http_build_query($data);
-        return redirect()->away("https://pagseguro.uol.com.br/v2/checkout/payment.html?$query");
-    }
-
-    public function retorno(Request $request, $pedidoId)
-    {
-        $pedido = Pedido::findOrFail($pedidoId);
-
-        // ID da transação retornada pelo PagSeguro
-        $transactionId = $request->get('transaction_id');
-
-        if (!$transactionId) {
-            return redirect()->route('carrinho.sucesso', ['pedidoId' => $pedido->id])
-                             ->with('warning', 'Não foi possível confirmar o pagamento.');
-        }
-
-        // Chama a API do PagSeguro
-        $email = 'EMAIL_DO_PAGSEGURO';
-        $token = 'TOKEN_DO_PAGSEGURO';
-        $url = "https://api.pagseguro.uol.com.br/v3/transactions/{$transactionId}?email={$email}&token={$token}";
+        $user = Auth::user();
 
         try {
-            $response = Http::get($url);
+            $carrinho = Carrinho::where('id_usuario', $user->id)
+                ->with('itens.produto')
+                ->first();
 
-            if ($response->failed()) {
-                return redirect()->route('carrinho.sucesso', ['pedidoId' => $pedido->id])
-                                 ->with('error', 'Falha ao consultar o pagamento.');
+            if (!$carrinho || $carrinho->itens->isEmpty()) {
+                return redirect()->route('carrinho.index')->with('error', 'O carrinho está vazio.');
             }
 
-            $xml = simplexml_load_string($response->body());
-            $status = (string) $xml->status;
+            // Cria pedido se não existir
+            $pedido = Pedido::create([
+                'id_usuario' => $user->id,
+                'status' => 'Pendente',
+                'total' => $carrinho->itens->sum(fn($i) => $i->produto->preco * $i->quantidade)
+            ]);
 
-            // Status possíveis:
-            // 1 = Aguardando pagamento
-            // 2 = Em análise
-            // 3 = Paga
-            // 4 = Disponível
-            // 5 = Em disputa
-            // 6 = Devolvida
-            // 7 = Cancelada
-
-            if ($status == '3' || $status == '4') {
-                $pedido->status = 'Pago';
-                $pedido->save();
-
-                return redirect()->route('carrinho.sucesso', ['pedidoId' => $pedido->id])
-                                 ->with('success', 'Pagamento confirmado com sucesso!');
-            } else {
-                $pedido->status = 'Pendente';
-                $pedido->save();
-
-                return redirect()->route('carrinho.sucesso', ['pedidoId' => $pedido->id])
-                                 ->with('warning', 'Pagamento ainda não foi aprovado.');
+            // Monta itens para PagSeguro
+            $itens = [];
+            foreach ($carrinho->itens as $item) {
+                $itens[] = [
+                    'name' => $item->produto->nome,
+                    'quantity' => (int) $item->quantidade,
+                    'unit_amount' => (int) round($item->produto->preco * 100),
+                ];
             }
+
+            $appUrl = env('APP_URL', 'http://localhost:8000');
+
+            $payload = [
+                'reference_id' => 'PEDIDO-' . uniqid(),
+                'customer' => [
+                    'name' => $user->nome ?? 'Cliente Teste',
+                    'email' => $user->email ?? env('PAGSEGURO_EMAIL'),
+                    'tax_id' => $user->cpf ?? '52998224725',
+                    'phones' => [[
+                        'country' => '55',
+                        'area' => '11',
+                        'number' => '999999999',
+                        'type' => 'MOBILE'
+                    ]]
+                ],
+                'items' => $itens,
+                'shipping' => [
+                    'address' => [
+                        'street' => $request->rua ?? 'Rua Teste',
+                        'number' => $request->numero ?? '123',
+                        'complement' => $request->complemento ?: 'S/N',
+                        'locality' => $request->bairro ?? 'Centro',
+                        'city' => $request->cidade ?? 'São Paulo',
+                        'region_code' => $request->estado ?? 'SP',
+                        'country' => 'BRA',
+                        'postal_code' => preg_replace('/\D/', '', $request->cep ?? '01452002')
+                    ],
+                    'type' => 'FREE'
+                ],
+                'redirect_url' => $appUrl . '/pagamentos/sucesso',
+                //'notification_urls' => [$appUrl . '/pagamentos/notificacao'], // Comente se não usar ngrok
+                'payment_methods' => [
+                    ['type' => 'CREDIT_CARD', 'brands' => ['visa','mastercard']],
+                    ['type' => 'PIX'],
+                    ['type' => 'BOLETO']
+                ]
+            ];
+
+            \Log::info('Payload PagSeguro: ' . json_encode($payload, JSON_PRETTY_PRINT));
+
+            $client = new Client();
+            $response = $client->post(rtrim(env('PAGSEGURO_API_URL'), '/') . '/orders', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . env('PAGSEGURO_TOKEN'),
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                'json' => $payload
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+            \Log::info('Resposta PagSeguro: ', $data);
+
+            if (!empty($data['id'])) {
+                Pagamento::create([
+                    'id_pedido' => $pedido->id,
+                    'forma_pagamento' => 'PagSeguro Sandbox',
+                    'status' => 'Pendente',
+                    'checkout_id' => $data['id'],
+                ]);
+
+                // Redireciona para link de pagamento
+                if (!empty($data['links'][1]['href'])) {
+                    return redirect()->away($data['links'][1]['href']);
+                }
+            }
+
+            return redirect()->route('pagamentos.erro')
+                ->with('error', 'Não foi possível gerar o link de pagamento.');
 
         } catch (\Exception $e) {
-            return redirect()->route('carrinho.sucesso', ['pedidoId' => $pedido->id])
-                             ->with('error', 'Erro ao verificar pagamento: ' . $e->getMessage());
+            \Log::error('Erro ao criar checkout PagSeguro: ' . $e->getMessage());
+            return redirect()->route('pagamentos.erro')
+                ->with('error', 'Erro ao criar checkout: ' . $e->getMessage());
         }
+    }
+
+    public function sucesso()
+    {
+        return view('pagamentos.sucesso');
+    }
+
+    public function erro()
+    {
+        return view('pagamentos.erro');
+    }
+
+    public function notificacao(Request $request)
+    {
+        \Log::info('Notificação PagSeguro:', $request->all());
+        return response()->json(['success' => true]);
     }
 }

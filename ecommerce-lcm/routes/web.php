@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProdutoController;
 use App\Http\Controllers\CarrinhoController;
 use App\Http\Controllers\PedidoController;
+use App\Http\Controllers\PagamentoController;
 
 // Página inicial / Home
 Route::get('/', [ProdutoController::class, 'home'])->name('home');
@@ -41,7 +42,13 @@ Route::post('/carrinho/adicionar/{produtoId}', [CarrinhoController::class, 'adic
 Route::put('/carrinho/atualizar/{itemId}', [CarrinhoController::class, 'atualizar'])->name('carrinho.atualizar');
 Route::delete('/carrinho/remover/{itemId}', [CarrinhoController::class, 'remover'])->name('carrinho.remover');
 Route::get('/carrinho/checkout', [CarrinhoController::class, 'checkout'])->name('carrinho.checkout');
-Route::post('/carrinho/finalizar', [CarrinhoController::class, 'finalizar'])->name('carrinho.finalizar');
+
+// Página de endereço (dentro da área do carrinho)
+Route::get('/carrinho/endereco', [CarrinhoController::class, 'endereco'])->name('carrinho.endereco');
+Route::post('/carrinho/endereco', [CarrinhoController::class, 'salvarEndereco'])->name('carrinho.salvarEndereco');
+
+
+
 Route::get('/carrinho/sucesso/{pedidoId}', [CarrinhoController::class, 'sucesso'])->name('carrinho.sucesso');
 
 
@@ -58,6 +65,12 @@ Route::patch('/pedidos/{id}/status', [PedidoController::class, 'updateStatus'])-
 
 
 
+    // Criar checkout e redirecionar para PagBank
+    Route::post('/pagamento', [PagamentoController::class, 'checkout'])->name('pagamento.criar');
 
-Route::get('/pagamento/{pedidoId}', [PagamentoController::class, 'pagar'])->name('pagamento.pagar');
-Route::get('/pagamento/retorno/{pedidoId}', [PagamentoController::class, 'retorno'])->name('pagamento.retorno');
+    // URLs de retorno
+    Route::get('/pagamentos/sucesso', [PagamentoController::class, 'sucesso'])->name('pagamentos.sucesso');
+    Route::get('/pagamentos/erro', [PagamentoController::class, 'erro'])->name('pagamentos.erro');
+
+    // Notificação do PagBank (POST)
+    Route::post('/pagamentos/notificacao', [PagamentoController::class, 'notificacao'])->name('pagamentos.notificacao');
